@@ -16,20 +16,29 @@ import {
  * WooCommerce dependencies
  */
 import { DateRangeFilterPicker } from '@woocommerce/components';
+import { useSettings } from '@woocommerce/data';
 
-const DefaultDate = ( { value, onChange } ) => {
-	const change = ( query ) => {
-		onChange( {
+const DefaultDate = ({ value, onChange }) => {
+	const { wcAdminSettings } = useSettings('wc_admin', ['wcAdminSettings']);
+	const {
+		woocommerce_default_date_range: defaultDateRange,
+	} = wcAdminSettings;
+	const change = (query) => {
+		onChange({
 			target: {
 				name: 'woocommerce_default_date_range',
-				value: stringify( query ),
+				value: stringify(query),
 			},
-		} );
+		});
 	};
-	const query = parse( value.replace( /&amp;/g, '&' ) );
-	const { period, compare, before, after } = getDateParamsFromQuery( query );
+	const query = parse(value.replace(/&amp;/g, '&'));
+	const { period, compare, before, after } = getDateParamsFromQuery(
+		query,
+		defaultDateRange
+	);
 	const { primary: primaryDate, secondary: secondaryDate } = getCurrentDates(
-		query
+		query,
+		defaultDateRange
 	);
 	const dateQuery = {
 		period,
@@ -41,10 +50,10 @@ const DefaultDate = ( { value, onChange } ) => {
 	};
 	return (
 		<DateRangeFilterPicker
-			query={ query }
-			onRangeSelect={ change }
-			dateQuery={ dateQuery }
-			isoDateFormat={ isoDateFormat }
+			query={query}
+			onRangeSelect={change}
+			dateQuery={dateQuery}
+			isoDateFormat={isoDateFormat}
 		/>
 	);
 };

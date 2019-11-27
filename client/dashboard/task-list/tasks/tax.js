@@ -7,7 +7,7 @@ import { Component, Fragment } from '@wordpress/element';
 import { compose } from '@wordpress/compose';
 import { difference, filter, get } from 'lodash';
 import interpolateComponents from 'interpolate-components';
-import { withDispatch } from '@wordpress/data';
+import { withDispatch, withSelect } from '@wordpress/data';
 
 /**
  * WooCommerce dependencies
@@ -19,6 +19,7 @@ import {
 	getSetting,
 	setSetting,
 } from '@woocommerce/wc-admin-settings';
+import { SETTINGS_STORE_NAME } from '@woocommerce/data';
 
 /**
  * Internal dependencies
@@ -27,7 +28,7 @@ import Connect from './steps/connect';
 import { getCountryCode } from 'dashboard/utils';
 import Plugins from './steps/plugins';
 import StoreLocation from './steps/location';
-import withSelect from 'wc-api/with-select';
+import withWCApiSelect from 'wc-api/with-select';
 import { recordEvent, queueRecordEvent } from 'lib/tracks';
 
 class Tax extends Component {
@@ -150,11 +151,11 @@ class Tax extends Component {
 	}
 
 	configureTaxRates() {
-		const { generalSettings, updateSettings } = this.props;
+		const { generalSettings, updateAndPersistSettingsForGroup } = this.props;
 
 		if ( generalSettings.woocommerce_calc_taxes !== 'yes' ) {
 			this.setState( { isPending: true } );
-			updateSettings( {
+			updateAndPersistSettingsForGroup( 'general', {
 				general: {
 					woocommerce_calc_taxes: 'yes',
 				},
@@ -167,10 +168,10 @@ class Tax extends Component {
 	}
 
 	async updateAutomatedTax() {
-		const { createNotice, isTaxSettingsError, updateSettings } = this.props;
+		const { createNotice, isTaxSettingsError, updateAndPersistSettingsForGroup } = this.props;
 		const { automatedTaxEnabled } = this.state;
 
-		await updateSettings( {
+		await updateAndPersistSettingsForGroup( 'tax', {
 			tax: {
 				wc_connect_taxes_enabled: automatedTaxEnabled ? 'yes' : 'no',
 			},
@@ -357,10 +358,7 @@ class Tax extends Component {
 
 	render() {
 		const { isPending, stepIndex } = this.state;
-		const {
-			isGeneralSettingsRequesting,
-			isTaxSettingsRequesting,
-		} = this.props;
+		const { isGeneralSettingsRequesting, isTaxSettingsRequesting, taxSettings } = this.props;
 		const step = this.getSteps()[ stepIndex ];
 
 		return (
@@ -403,6 +401,7 @@ class Tax extends Component {
 							</p>
 							<Button
 								isPrimary
+								isBusy={ Object.keys( taxSettings ).length && isTaxSettingsRequesting }
 								onClick={ () => {
 									recordEvent(
 										'tasklist_tax_setup_automated_proceed',
@@ -446,27 +445,9 @@ class Tax extends Component {
 }
 
 export default compose(
-	withSelect( ( select ) => {
-		const {
-			getActivePlugins,
-			getOptions,
-			getSettings,
-			getSettingsError,
-			isGetSettingsRequesting,
-			isJetpackConnected,
-		} = select( 'wc-api' );
+	withWCApiSelect( select => {
+		const { getActivePlugins, getOptions, isJetpackConnected } = select( 'wc-api' );
 
-		const generalSettings = getSettings( 'general' );
-		const isGeneralSettingsError = Boolean( getSettingsError( 'general' ) );
-		const isGeneralSettingsRequesting = isGetSettingsRequesting(
-			'general'
-		);
-		const taxSettings = getSettings( 'tax' );
-		const isTaxSettingsError = Boolean( getSettingsError( 'tax' ) );
-		const isTaxSettingsRequesting = isGetSettingsRequesting( 'tax' );
-		const countryCode = getCountryCode(
-			generalSettings.woocommerce_default_country
-		);
 		const activePlugins = getActivePlugins();
 		const pluginsToActivate = difference(
 			[ 'jetpack', 'woocommerce-services' ],
@@ -482,25 +463,42 @@ export default compose(
 			options.woocommerce_setup_jetpack_opted_in;
 
 		return {
-			countryCode,
-			isGeneralSettingsError,
-			isGeneralSettingsRequesting,
-			generalSettings,
-			isTaxSettingsError,
-			isTaxSettingsRequesting,
-			taxSettings,
 			isJetpackConnected: isJetpackConnected(),
 			pluginsToActivate,
 			tosAccepted,
 		};
 	} ),
+	withSelect( select => {
+		const { getSettings, getSettingsError, isGetSettingsRequesting } = select(
+			SETTINGS_STORE_NAME
+		);
+
+		const { general: generalSettings = {} } = getSettings( 'general' );
+		const isGeneralSettingsError = Boolean( getSettingsError( 'general' ) );
+		const isGeneralSettingsRequesting = isGetSettingsRequesting( 'general' );
+		const countryCode = getCountryCode( generalSettings.woocommerce_default_country );
+
+		const { tax: taxSettings = {} } = getSettings( 'tax' );
+		const isTaxSettingsError = Boolean( getSettingsError( 'tax' ) );
+		const isTaxSettingsRequesting = isGetSettingsRequesting( 'tax' );
+
+		return {
+			isGeneralSettingsError,
+			isGeneralSettingsRequesting,
+			generalSettings,
+			countryCode,
+			taxSettings,
+			isTaxSettingsError,
+			isTaxSettingsRequesting,
+		};
+	} ),
 	withDispatch( ( dispatch ) => {
 		const { createNotice } = dispatch( 'core/notices' );
-		const { updateSettings } = dispatch( 'wc-api' );
+		const { updateAndPersistSettingsForGroup } = dispatch( SETTINGS_STORE_NAME );
 
 		return {
 			createNotice,
-			updateSettings,
+			updateAndPersistSettingsForGroup,
 		};
 	} )
 )( Tax );
