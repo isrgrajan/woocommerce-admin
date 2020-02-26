@@ -1,4 +1,4 @@
-/** @format */
+
 
 export function getResourceName( prefix, identifier ) {
 	const identifierString = JSON.stringify( identifier, Object.keys( identifier ).sort() );

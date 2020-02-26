@@ -1,4 +1,4 @@
-/** @format */
+
 
 export const JETPACK_NAMESPACE = '/jetpack/v4';
 export const NAMESPACE = '/wc-analytics';

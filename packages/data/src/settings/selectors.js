@@ -1,5 +1,3 @@
-/** @format */
-
 /**
  * Internal dependencies
  */
@@ -57,19 +55,19 @@ export const isGetSettingsRequesting = ( state, group ) => {
  * Retrieves a setting value from the setting store.
  *
  * @export
- * @param {object}   state                        State param added by wp.data.
+ * @param {Object}   state                        State param added by wp.data.
  * @param {string}   group                        The settings group.
  * @param {string}   name                         The identifier for the setting.
- * @param {mixed}    [fallback=false]             The value to use as a fallback
+ * @param {*}    [fallback=false]             The value to use as a fallback
  *                                                if the setting is not in the
  *                                                state.
- * @param {function} [filter=( val ) => val]  	  A callback for filtering the
+ * @param {Function} [filter=( val ) => val]  	  A callback for filtering the
  *                                                value before it's returned.
  *                                                Receives both the found value
  *                                                (if it exists for the key) and
  *                                                the provided fallback arg.
  *
- * @returns {mixed}  The value present in the settings state for the given
+ * @return {*}  The value present in the settings state for the given
  *                   name.
  */
 export function getSetting( state, group, name, fallback = false, filter = val => val ) {

@@ -1,4 +1,4 @@
-/** @format */
+
 
 const TYPES = {
 	UPDATE_SETTINGS_FOR_GROUP: 'UPDATE_SETTINGS_FOR_GROUP',

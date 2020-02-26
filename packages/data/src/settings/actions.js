@@ -1,7 +1,5 @@
 /**
  * External Dependencies
- *
- * @format
  */
 
 import { apiFetch, select } from '@wordpress/data-controls';

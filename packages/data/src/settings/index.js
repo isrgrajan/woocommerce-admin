@@ -1,7 +1,5 @@
 /**
  * External dependencies
- *
- * @format
  */
 
 import { registerStore } from '@wordpress/data';
