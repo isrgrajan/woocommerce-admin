@@ -14,7 +14,7 @@ import { getCurrentDates, defaultTableDateFormat } from 'lib/date';
 import { Date, Link } from '@woocommerce/components';
 import { getNewPath, getPersistedQuery } from '@woocommerce/navigation';
 import { formatValue } from 'lib/number-format';
-import { getAdminLink } from '@woocommerce/wc-admin-settings';
+import { getAdminLink, getSetting } from '@woocommerce/wc-admin-settings';
 import { SETTINGS_STORE_NAME } from '@woocommerce/data';
 
 /**
@@ -98,10 +98,7 @@ class CouponsReportTable extends Component {
 			return [
 				{
 					display: (
-						<Date
-							date={ date }
-							visibleFormat={ dateFormat }
-						/>
+						<Date date={ date } visibleFormat={ dateFormat } />
 					),
 					value: date,
 				},
@@ -193,7 +190,7 @@ class CouponsReportTable extends Component {
 	}
 }
 
-export default withSelect( select => {
+export default withSelect( ( select ) => {
 	const { woocommerce_default_date_range: defaultDateRange } = select(
 		SETTINGS_STORE_NAME
 	).getSetting( 'wc_admin', 'wcAdminSettings' );
